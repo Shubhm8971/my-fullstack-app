@@ -76,12 +76,10 @@ app.get('/api/events', (req, res) => {
 });
 
 // 3. PRODUCTION: Serve Static Files
-// This serves your react build from the /dist folder
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// 4. PRODUCTION: SPA Fallback
-// This ensures that React Router handles all client-side navigation
-app.get('*', (req, res) => {
+// 4. PRODUCTION: SPA Fallback (Updated for Express 5 compatibility)
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
