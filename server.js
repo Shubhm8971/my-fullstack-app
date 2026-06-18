@@ -78,8 +78,10 @@ app.get('/api/events', (req, res) => {
 // 3. PRODUCTION: Serve Static Files
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// 4. PRODUCTION: SPA Fallback (Updated for Express 5 compatibility)
-app.get('/*', (req, res) => {
+// 4. PRODUCTION: SPA Fallback (Regex Fix for Express 5)
+// This matches any request that doesn't start with /api, 
+// safely serving your React index.html for client-side routing.
+app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
