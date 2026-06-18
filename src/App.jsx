@@ -3,7 +3,6 @@ import { useState, createContext, useContext, useEffect } from 'react';
 // 1. GLOBAL CONTEXT
 const SystemContext = createContext();
 
-// CONFIGURATION: Remove the full URL. Use relative paths for the proxy to work.
 const API_BASE = ''; 
 
 export default function App() {
@@ -65,6 +64,8 @@ function Navbar() {
 
 function Dashboard() {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lastSync, setLastSync] = useState(null);
 
   const fetchLogs = async () => {
     try {
@@ -73,22 +74,20 @@ function Dashboard() {
       setLogs(data);
     } catch (err) {
       console.error("Failed to load logs");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // 1. Establish Real-time connection via relative path
     const eventSource = new EventSource(`${API_BASE}/api/events`);
 
     eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("📡 Real-time heartbeat:", data);
+      setLastSync(new Date().toLocaleTimeString());
       fetchLogs();
     };
 
-    // 2. Initial fetch
     fetchLogs();
-
     return () => eventSource.close();
   }, []);
 
@@ -110,7 +109,11 @@ function Dashboard() {
   
   return (
     <div style={{ padding: '40px', textAlign: 'center' }}>
-      <h1>REAL-TIME STREAMING</h1>
+      <h1>REAL-TIME MONITORING</h1>
+      
+      <div style={{ marginBottom: '15px', fontSize: '0.8rem', color: '#9ca3af' }}>
+        {lastSync ? `Last Sync: ${lastSync}` : "Waiting for heartbeat..."}
+      </div>
       
       <button 
         onClick={sendSystemPing} 
@@ -121,13 +124,23 @@ function Dashboard() {
 
       <div style={{ marginTop: '30px', textAlign: 'left', maxWidth: '500px', margin: '30px auto' }}>
         <h3>Stored Logs:</h3>
-        <ul style={{ padding: '10px', backgroundColor: '#1f2937', borderRadius: '8px' }}>
-          {logs.map((log, i) => (
-            <li key={i} style={{ fontSize: '0.8rem', marginBottom: '5px' }}>
-              {log.timestamp.slice(11, 19)} | {log.event}
-            </li>
-          ))}
-        </ul>
+        {loading ? (
+          <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading system logs...</p>
+        ) : logs.length === 0 ? (
+          <p style={{ textAlign: 'center', color: '#6b7280' }}>No logs found.</p>
+        ) : (
+          <ul style={{ 
+            padding: '15px', backgroundColor: '#1f2937', borderRadius: '8px', 
+            maxHeight: '300px', overflowY: 'auto' 
+          }}>
+            {logs.map((log, i) => (
+              <li key={i} style={{ fontSize: '0.85rem', marginBottom: '8px', borderBottom: '1px solid #374151', paddingBottom: '4px' }}>
+                <span style={{ color: '#818cf8', marginRight: '10px' }}>{log.timestamp.slice(11, 19)}</span> 
+                {log.event}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
