@@ -1,9 +1,6 @@
 import { useState, createContext, useContext, useEffect } from 'react';
 
-// 1. GLOBAL CONTEXT
 const SystemContext = createContext();
-
-// Use an empty string for relative paths (works perfectly on Render)
 const API_BASE = ''; 
 
 export default function App() {
@@ -12,18 +9,23 @@ export default function App() {
 
   const checkServer = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/system-status`);
-      if (!response.ok) throw new Error('Network error');
+      // Added cache: 'no-store' to bypass browser caching
+      const response = await fetch(`${API_BASE}/api/system-status`, { cache: 'no-store' });
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+      
       const data = await response.json();
       setServerStatus(data);
     } catch (err) {
-      setServerStatus({ status: 'OFFLINE', message: 'Proxy unreachable' });
+      console.error("DIAGNOSTIC - Status Check Failed:", err);
+      setServerStatus({ status: 'OFFLINE', message: err.message });
     }
   };
 
   useEffect(() => {
     checkServer();
-    // Re-check every 10 seconds to recover from temporary downtime
     const interval = setInterval(checkServer, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -59,9 +61,7 @@ function Navbar() {
         <span style={{ marginRight: '20px', color: serverStatus.status === 'ONLINE' ? '#10b981' : '#ef4444' }}>
           SERVER: {serverStatus.status}
         </span>
-        {serverStatus.status === 'OFFLINE' && (
-          <button onClick={checkServer} style={{ marginRight: '10px' }}>RETRY</button>
-        )}
+        <button onClick={checkServer} style={{ marginRight: '10px' }}>REFRESH STATUS</button>
         <button onClick={() => setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')}>
           THEME: {theme}
         </button>
@@ -77,7 +77,7 @@ function Dashboard() {
 
   const fetchLogs = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/system-logs`);
+      const response = await fetch(`${API_BASE}/api/system-logs`, { cache: 'no-store' });
       if (!response.ok) return;
       const data = await response.json();
       setLogs(data);
@@ -109,7 +109,7 @@ function Dashboard() {
           origin: "React Dashboard" 
         })
       });
-      if (res.ok) fetchLogs(); // Immediate refresh after ping
+      if (res.ok) fetchLogs();
     } catch (err) {
       alert("Failed to send log.");
     }
