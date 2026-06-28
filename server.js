@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import User from './User.js'; // Ensure this file exists in your root
+import User from './User.js'; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,14 +33,13 @@ const authenticate = (req, res, next) => {
   
   try {
     const verified = jwt.verify(token, JWT_SECRET);
-    req.user = verified; // Now contains { id, role, iat, exp }
+    req.user = verified;
     next();
   } catch (err) {
     res.status(403).json({ error: "Invalid or expired token" });
   }
 };
 
-// RBAC Middleware
 const authorizeAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: "Access Denied: Admins only" });
@@ -69,7 +68,6 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await User.findOne({ username });
     
     if (user && await bcrypt.compare(password, user.password)) {
-      // Include role in JWT payload
       const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '8h' });
       res.json({ token });
     } else {
@@ -82,11 +80,20 @@ app.post('/api/auth/login', async (req, res) => {
 
 // 5. Protected Routes
 app.get('/api/system-logs', authenticate, async (req, res) => {
-  const logs = await Log.find().sort({ timestamp: -1 }).limit(50);
+  const { startDate, endDate } = req.query;
+  let query = {};
+
+  // Build query if dates are provided
+  if (startDate || endDate) {
+    query.timestamp = {};
+    if (startDate) query.timestamp.$gte = startDate;
+    if (endDate) query.timestamp.$lte = endDate;
+  }
+
+  const logs = await Log.find(query).sort({ timestamp: -1 }).limit(50);
   res.json(logs);
 });
 
-// Example of an Admin-only route
 app.delete('/api/system-logs', authenticate, authorizeAdmin, async (req, res) => {
   try {
     await Log.deleteMany({});

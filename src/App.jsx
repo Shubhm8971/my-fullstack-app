@@ -109,10 +109,17 @@ function Dashboard() {
   const { token } = useContext(SystemContext);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const fetchLogs = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/system-logs`, { 
+      let url = `${API_BASE}/api/system-logs?`;
+      if (startDate) url += `startDate=${startDate}&`;
+      if (endDate) url += `endDate=${endDate}`;
+
+      const response = await fetch(url, { 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
       const data = await response.json();
@@ -146,13 +153,20 @@ function Dashboard() {
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       `}</style>
       <h1>SECURED MONITORING</h1>
+      
+      <div style={{ marginBottom: '20px' }}>
+        <input type="date" onChange={e => setStartDate(e.target.value)} />
+        <input type="date" onChange={e => setEndDate(e.target.value)} style={{ margin: '0 10px' }} />
+        <button onClick={fetchLogs}>Filter Logs</button>
+      </div>
+
       <button onClick={sendSystemPing} style={{ padding: '10px 20px', cursor: 'pointer' }}>PING SERVER</button>
       
       {loading ? (
         <div className="spinner"></div>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, marginTop: '20px' }}>
-          {logs.map((log, i) => <li key={i}>{log.timestamp?.slice(11, 19)} - {log.event}</li>)}
+          {logs.map((log, i) => <li key={i}>{log.timestamp?.slice(0, 10)} - {log.event}</li>)}
         </ul>
       )}
     </div>
