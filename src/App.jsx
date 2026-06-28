@@ -63,8 +63,21 @@ function AuthView({ onLogin }) {
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
       <h2>{isRegister ? 'REGISTER SYSTEM' : 'SYSTEM LOGIN'}</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '300px' }}>
-        <input placeholder="Username" onChange={e => setUsername(e.target.value)} style={{ padding: '8px' }} />
-        <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} style={{ padding: '8px' }} />
+        <input 
+          name="username" 
+          id="username" 
+          placeholder="Username" 
+          onChange={e => setUsername(e.target.value)} 
+          style={{ padding: '8px' }} 
+        />
+        <input 
+          type="password" 
+          name="password" 
+          id="password" 
+          placeholder="Password" 
+          onChange={e => setPassword(e.target.value)} 
+          style={{ padding: '8px' }} 
+        />
         <button type="submit">{isRegister ? 'REGISTER' : 'LOGIN'}</button>
         <button type="button" onClick={() => setIsRegister(!isRegister)} style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer' }}>
           {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
