@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import User from './User.js'; // Ensure this file exists in your root
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,26 +24,28 @@ mongoose.connect(MONGO_URI)
 const LogSchema = new mongoose.Schema({ timestamp: String, event: String, origin: String });
 const Log = mongoose.model('Log', LogSchema);
 
-const UserSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
-});
-const User = mongoose.model('User', UserSchema);
-
 // 3. Auth Middleware
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
   
-  if (!token) return res.status(401).json({ error: "Access Denied: No token provided" });
+  if (!token) return res.status(401).json({ error: "Access Denied" });
   
   try {
     const verified = jwt.verify(token, JWT_SECRET);
-    req.user = verified;
+    req.user = verified; // Now contains { id, role, iat, exp }
     next();
   } catch (err) {
     res.status(403).json({ error: "Invalid or expired token" });
   }
+};
+
+// RBAC Middleware
+const authorizeAdmin = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: "Access Denied: Admins only" });
+  }
+  next();
 };
 
 app.use(cors());
@@ -54,9 +57,9 @@ app.post('/api/auth/register', async (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({ username, password: hashedPassword });
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "User registered" });
   } catch (err) {
-    res.status(400).json({ error: "Registration failed: Username might be taken" });
+    res.status(400).json({ error: "Registration failed" });
   }
 });
 
@@ -66,7 +69,8 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await User.findOne({ username });
     
     if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '8h' });
+      // Include role in JWT payload
+      const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '8h' });
       res.json({ token });
     } else {
       res.status(401).json({ error: "Invalid username or password" });
@@ -76,33 +80,25 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// 5. Protected API Routes
+// 5. Protected Routes
 app.get('/api/system-logs', authenticate, async (req, res) => {
   const logs = await Log.find().sort({ timestamp: -1 }).limit(50);
   res.json(logs);
 });
 
-app.post('/api/system-logs', authenticate, async (req, res) => {
+// Example of an Admin-only route
+app.delete('/api/system-logs', authenticate, authorizeAdmin, async (req, res) => {
   try {
-    const newLog = new Log(req.body);
-    await newLog.save();
-    res.status(201).json({ success: true });
+    await Log.deleteMany({});
+    res.json({ message: "All logs cleared by Admin" });
   } catch (err) {
-    res.status(500).json({ error: "Failed to save log" });
+    res.status(500).json({ error: "Failed to clear logs" });
   }
 });
 
-// Unprotected routes
+// Unprotected
 app.get('/api/system-status', (req, res) => {
   res.json({ status: "ONLINE", timestamp: new Date().toISOString() });
-});
-
-app.get('/api/events', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  const interval = setInterval(() => res.write(`data: ALIVE\n\n`), 30000);
-  req.on('close', () => clearInterval(interval));
 });
 
 // 6. Serve static files
