@@ -53,6 +53,13 @@ function AuthView({ onLogin }) {
       alert(data.message || data.error);
       if (!data.error) setIsRegister(false);
     } else if (data.token) {
+      // Decode JWT to log the role in the console for verification
+      try {
+        const payload = JSON.parse(atob(data.token.split('.')[1]));
+        console.log("Logged in user role:", payload.role);
+      } catch (err) {
+        console.error("Could not decode token");
+      }
       onLogin(data.token);
     } else {
       alert(data.error || 'Login failed');
