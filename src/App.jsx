@@ -1,4 +1,5 @@
 import { useState, createContext, useContext, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const SystemContext = createContext();
 const API_BASE = ''; 
@@ -129,6 +130,14 @@ function Dashboard() {
 
   useEffect(() => { fetchLogs(); }, []);
 
+  const getChartData = () => {
+    const counts = logs.reduce((acc, log) => {
+      acc[log.event] = (acc[log.event] || 0) + 1;
+      return acc;
+    }, {});
+    return Object.keys(counts).map(event => ({ name: event, count: counts[event] }));
+  };
+
   const sendSystemPing = async () => {
     await fetch(`${API_BASE}/api/system-logs`, {
       method: 'POST',
@@ -154,6 +163,18 @@ function Dashboard() {
       `}</style>
       <h1>SECURED MONITORING</h1>
       
+      {/* CHART SECTION */}
+      <div style={{ height: '300px', width: '100%', maxWidth: '600px', margin: '20px auto' }}>
+        <ResponsiveContainer>
+          <BarChart data={getChartData()}>
+            <XAxis dataKey="name" stroke="#888" />
+            <YAxis stroke="#888" />
+            <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none' }} />
+            <Bar dataKey="count" fill="#6366f1" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
       <div style={{ marginBottom: '20px' }}>
         <input type="date" onChange={e => setStartDate(e.target.value)} />
         <input type="date" onChange={e => setEndDate(e.target.value)} style={{ margin: '0 10px' }} />
