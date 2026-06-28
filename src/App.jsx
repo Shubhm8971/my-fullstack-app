@@ -53,13 +53,10 @@ function AuthView({ onLogin }) {
       alert(data.message || data.error);
       if (!data.error) setIsRegister(false);
     } else if (data.token) {
-      // Decode JWT to log the role in the console for verification
       try {
         const payload = JSON.parse(atob(data.token.split('.')[1]));
         console.log("Logged in user role:", payload.role);
-      } catch (err) {
-        console.error("Could not decode token");
-      }
+      } catch (err) { console.error("Could not decode token"); }
       onLogin(data.token);
     } else {
       alert(data.error || 'Login failed');
@@ -70,21 +67,8 @@ function AuthView({ onLogin }) {
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
       <h2>{isRegister ? 'REGISTER SYSTEM' : 'SYSTEM LOGIN'}</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '300px' }}>
-        <input 
-          name="username" 
-          id="username" 
-          placeholder="Username" 
-          onChange={e => setUsername(e.target.value)} 
-          style={{ padding: '8px' }} 
-        />
-        <input 
-          type="password" 
-          name="password" 
-          id="password" 
-          placeholder="Password" 
-          onChange={e => setPassword(e.target.value)} 
-          style={{ padding: '8px' }} 
-        />
+        <input name="username" id="username" placeholder="Username" onChange={e => setUsername(e.target.value)} style={{ padding: '8px' }} />
+        <input type="password" name="password" id="password" placeholder="Password" onChange={e => setPassword(e.target.value)} style={{ padding: '8px' }} />
         <button type="submit">{isRegister ? 'REGISTER' : 'LOGIN'}</button>
         <button type="button" onClick={() => setIsRegister(!isRegister)} style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer' }}>
           {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
@@ -149,11 +133,28 @@ function Dashboard() {
 
   return (
     <div style={{ textAlign: 'center', padding: '40px' }}>
+      <style>{`
+        .spinner {
+          border: 4px solid rgba(255, 255, 255, 0.1);
+          border-left: 4px solid #6366f1;
+          border-radius: 50%;
+          width: 30px;
+          height: 30px;
+          animation: spin 1s linear infinite;
+          margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      `}</style>
       <h1>SECURED MONITORING</h1>
       <button onClick={sendSystemPing} style={{ padding: '10px 20px', cursor: 'pointer' }}>PING SERVER</button>
-      <ul style={{ listStyle: 'none', padding: 0, marginTop: '20px' }}>
-        {logs.map((log, i) => <li key={i}>{log.timestamp?.slice(11, 19)} - {log.event}</li>)}
-      </ul>
+      
+      {loading ? (
+        <div className="spinner"></div>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0, marginTop: '20px' }}>
+          {logs.map((log, i) => <li key={i}>{log.timestamp?.slice(11, 19)} - {log.event}</li>)}
+        </ul>
+      )}
     </div>
   );
 }
