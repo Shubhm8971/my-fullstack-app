@@ -4,22 +4,17 @@ const SystemContext = createContext();
 const API_BASE = ''; 
 
 export default function App() {
+  const [token, setToken] = useState(localStorage.getItem('token'));
   const [theme, setTheme] = useState('DARK');
   const [serverStatus, setServerStatus] = useState({ status: 'LOADING', message: '...' });
 
   const checkServer = async () => {
     try {
-      // Added cache: 'no-store' to bypass browser caching
       const response = await fetch(`${API_BASE}/api/system-status`, { cache: 'no-store' });
-      
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
-      
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
       const data = await response.json();
       setServerStatus(data);
     } catch (err) {
-      console.error("DIAGNOSTIC - Status Check Failed:", err);
       setServerStatus({ status: 'OFFLINE', message: err.message });
     }
   };
@@ -30,22 +25,63 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  if (!token) return <AuthView onLogin={(t) => { localStorage.setItem('token', t); setToken(t); }} />;
+
   return (
-    <SystemContext.Provider value={{ theme, setTheme, serverStatus, checkServer }}>
+    <SystemContext.Provider value={{ theme, setTheme, serverStatus, checkServer, token, setToken }}>
       <SystemLayout />
     </SystemContext.Provider>
   );
 }
 
-function SystemLayout() {
-  const { theme } = useContext(SystemContext);
+function AuthView({ onLogin }) {
+  const [isRegister, setIsRegister] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    
+    if (isRegister) {
+      alert(data.message || data.error);
+      if (!data.error) setIsRegister(false);
+    } else if (data.token) {
+      onLogin(data.token);
+    } else {
+      alert(data.error || 'Login failed');
+    }
+  };
+
   return (
-    <div style={{ 
-      backgroundColor: theme === 'DARK' ? '#030712' : '#f3f4f6', 
-      color: theme === 'DARK' ? '#ffffff' : '#111827',
-      minHeight: '100vh', transition: 'all 0.3s ease', padding: '20px'
-    }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
+      <h2>{isRegister ? 'REGISTER SYSTEM' : 'SYSTEM LOGIN'}</h2>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '300px' }}>
+        <input placeholder="Username" onChange={e => setUsername(e.target.value)} style={{ padding: '8px' }} />
+        <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} style={{ padding: '8px' }} />
+        <button type="submit">{isRegister ? 'REGISTER' : 'LOGIN'}</button>
+        <button type="button" onClick={() => setIsRegister(!isRegister)} style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer' }}>
+          {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function SystemLayout() {
+  const { theme, setToken } = useContext(SystemContext);
+  return (
+    <div style={{ backgroundColor: theme === 'DARK' ? '#030712' : '#f3f4f6', color: theme === 'DARK' ? '#ffffff' : '#111827', minHeight: '100vh', padding: '20px' }}>
       <Navbar />
+      <div style={{ textAlign: 'right', marginTop: '10px' }}>
+        <button onClick={() => { localStorage.removeItem('token'); setToken(null); window.location.reload(); }}>LOGOUT</button>
+      </div>
       <Dashboard />
     </div>
   );
@@ -53,98 +89,51 @@ function SystemLayout() {
 
 function Navbar() {
   const { theme, setTheme, serverStatus, checkServer } = useContext(SystemContext);
-  
   return (
-    <nav style={{ padding: '20px', borderBottom: '1px solid #374151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <nav style={{ padding: '20px', borderBottom: '1px solid #374151', display: 'flex', justifyContent: 'space-between' }}>
       <strong>SYSTEM_CORE_V3.0</strong>
       <div>
-        <span style={{ marginRight: '20px', color: serverStatus.status === 'ONLINE' ? '#10b981' : '#ef4444' }}>
-          SERVER: {serverStatus.status}
-        </span>
-        <button onClick={checkServer} style={{ marginRight: '10px' }}>REFRESH STATUS</button>
-        <button onClick={() => setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')}>
-          THEME: {theme}
-        </button>
+        <span style={{ color: serverStatus.status === 'ONLINE' ? '#10b981' : '#ef4444', marginRight: '15px' }}>SERVER: {serverStatus.status}</span>
+        <button onClick={checkServer} style={{ marginRight: '5px' }}>REFRESH</button>
+        <button onClick={() => setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')}>THEME: {theme}</button>
       </div>
     </nav>
   );
 }
 
 function Dashboard() {
+  const { token } = useContext(SystemContext);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [lastSync, setLastSync] = useState(null);
 
   const fetchLogs = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/system-logs`, { cache: 'no-store' });
-      if (!response.ok) return;
+      const response = await fetch(`${API_BASE}/api/system-logs`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
       const data = await response.json();
       setLogs(data);
-    } catch (err) {
-      console.error("Failed to load logs");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error("Failed to load logs"); } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    const eventSource = new EventSource(`${API_BASE}/api/events`);
-    eventSource.onmessage = (event) => {
-      setLastSync(new Date().toLocaleTimeString());
-      fetchLogs();
-    };
-    fetchLogs();
-    return () => eventSource.close();
-  }, []);
+  useEffect(() => { fetchLogs(); }, []);
 
   const sendSystemPing = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/system-logs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          timestamp: new Date().toISOString(), 
-          event: "Manual Health Check",
-          origin: "React Dashboard" 
-        })
-      });
-      if (res.ok) fetchLogs();
-    } catch (err) {
-      alert("Failed to send log.");
-    }
+    await fetch(`${API_BASE}/api/system-logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ timestamp: new Date().toISOString(), event: "Manual Health Check" })
+    });
+    fetchLogs();
   };
-  
-  return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
-      <h1>REAL-TIME MONITORING</h1>
-      <div style={{ marginBottom: '15px', fontSize: '0.8rem', color: '#9ca3af' }}>
-        {lastSync ? `Last Sync: ${lastSync}` : "Waiting for heartbeat..."}
-      </div>
-      <button 
-        onClick={sendSystemPing} 
-        style={{ padding: '10px 20px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-      >
-        PING SERVER
-      </button>
 
-      <div style={{ marginTop: '30px', textAlign: 'left', maxWidth: '500px', margin: '30px auto' }}>
-        <h3>Stored Logs:</h3>
-        {loading ? (
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading logs from MongoDB...</p>
-        ) : logs.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>No logs found.</p>
-        ) : (
-          <ul style={{ padding: '15px', backgroundColor: '#1f2937', borderRadius: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-            {logs.map((log, i) => (
-              <li key={i} style={{ fontSize: '0.85rem', marginBottom: '8px', borderBottom: '1px solid #374151' }}>
-                <span style={{ color: '#818cf8', marginRight: '10px' }}>{log.timestamp ? log.timestamp.slice(11, 19) : 'N/A'}</span> 
-                {log.event}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+  return (
+    <div style={{ textAlign: 'center', padding: '40px' }}>
+      <h1>SECURED MONITORING</h1>
+      <button onClick={sendSystemPing} style={{ padding: '10px 20px', cursor: 'pointer' }}>PING SERVER</button>
+      <ul style={{ listStyle: 'none', padding: 0, marginTop: '20px' }}>
+        {logs.map((log, i) => <li key={i}>{log.timestamp?.slice(11, 19)} - {log.event}</li>)}
+      </ul>
     </div>
   );
 }
