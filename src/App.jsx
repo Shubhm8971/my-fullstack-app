@@ -150,6 +150,22 @@ function Dashboard() {
     a.click();
   };
 
+  const clearAllLogs = async () => {
+    if (!confirm("WARNING: This will delete ALL system logs. Are you sure?")) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/system-logs`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        alert("Logs cleared successfully");
+        fetchLogs();
+      } else {
+        alert("Access Denied: Admins only");
+      }
+    } catch (err) { console.error("Failed to clear logs"); }
+  };
+
   const sendSystemPing = async () => {
     await fetch(`${API_BASE}/api/system-logs`, {
       method: 'POST',
@@ -191,6 +207,7 @@ function Dashboard() {
         <input type="date" onChange={e => setEndDate(e.target.value)} style={{ margin: '0 10px' }} />
         <button onClick={fetchLogs}>Filter Logs</button>
         <button onClick={exportToCSV} style={{ marginLeft: '10px', backgroundColor: '#10b981', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>Export CSV</button>
+        <button onClick={clearAllLogs} style={{ marginLeft: '10px', backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>PURGE ALL LOGS</button>
       </div>
 
       <button onClick={sendSystemPing} style={{ padding: '10px 20px', cursor: 'pointer' }}>PING SERVER</button>
