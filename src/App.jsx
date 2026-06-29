@@ -6,6 +6,7 @@ const API_BASE = '';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isInitializing, setIsInitializing] = useState(true);
   const [theme, setTheme] = useState('DARK');
   const [serverStatus, setServerStatus] = useState({ status: 'LOADING', message: '...' });
 
@@ -21,10 +22,17 @@ export default function App() {
   };
 
   useEffect(() => {
+    // Sync token from localStorage once on load
+    setToken(localStorage.getItem('token'));
+    setIsInitializing(false);
+    
     checkServer();
     const interval = setInterval(checkServer, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  // Show a loading screen while checking authentication status
+  if (isInitializing) return <div style={{ background: '#030712', height: '100vh' }}></div>;
 
   if (!token) return <AuthView onLogin={(t) => { localStorage.setItem('token', t); setToken(t); }} />;
 
