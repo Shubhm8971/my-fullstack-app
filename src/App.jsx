@@ -138,6 +138,18 @@ function Dashboard() {
     return Object.keys(counts).map(event => ({ name: event, count: counts[event] }));
   };
 
+  const exportToCSV = () => {
+    const headers = ["Timestamp,Event"];
+    const csvRows = logs.map(log => `${log.timestamp},${log.event}`);
+    const csvContent = [headers, ...csvRows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `logs_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    a.click();
+  };
+
   const sendSystemPing = async () => {
     await fetch(`${API_BASE}/api/system-logs`, {
       method: 'POST',
@@ -163,7 +175,6 @@ function Dashboard() {
       `}</style>
       <h1>SECURED MONITORING</h1>
       
-      {/* CHART SECTION */}
       <div style={{ height: '300px', width: '100%', maxWidth: '600px', margin: '20px auto' }}>
         <ResponsiveContainer>
           <BarChart data={getChartData()}>
@@ -179,6 +190,7 @@ function Dashboard() {
         <input type="date" onChange={e => setStartDate(e.target.value)} />
         <input type="date" onChange={e => setEndDate(e.target.value)} style={{ margin: '0 10px' }} />
         <button onClick={fetchLogs}>Filter Logs</button>
+        <button onClick={exportToCSV} style={{ marginLeft: '10px', backgroundColor: '#10b981', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>Export CSV</button>
       </div>
 
       <button onClick={sendSystemPing} style={{ padding: '10px 20px', cursor: 'pointer' }}>PING SERVER</button>
