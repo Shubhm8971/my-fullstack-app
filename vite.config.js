@@ -11,8 +11,8 @@ export default defineConfig({
         secure: false,
         // This is crucial: if the environment is strictly blocking, 
         // sometimes we need to pass the host header explicitly
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
             proxyReq.setHeader('Host', 'localhost:3001');
           });
         }

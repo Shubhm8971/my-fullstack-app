@@ -34,7 +34,7 @@ export default function AuthView() {
       } else {
         alert(data.error || 'Login failed');
       }
-    } catch (err) {
+    } catch (_err) {
       alert('Network error, please try again.');
     }
   };

@@ -18,7 +18,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey123';
 const MONGO_URI = process.env.MONGO_URI || '';
 mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ Connected to MongoDB"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
+  .catch(_err => console.error("❌ MongoDB connection error:", _err));
 
 // 2. Schemas
 const LogSchema = new mongoose.Schema({ timestamp: String, event: String, origin: String });
@@ -35,7 +35,7 @@ const authenticate = (req, res, next) => {
     const verified = jwt.verify(token, JWT_SECRET);
     req.user = verified;
     next();
-  } catch (err) {
+  } catch (_err) {
     res.status(403).json({ error: "Invalid or expired token" });
   }
 };
@@ -57,7 +57,7 @@ app.post('/api/auth/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({ username, password: hashedPassword });
     res.status(201).json({ message: "User registered" });
-  } catch (err) {
+  } catch (_err) {
     res.status(400).json({ error: "Registration failed" });
   }
 });
@@ -73,7 +73,7 @@ app.post('/api/auth/login', async (req, res) => {
     } else {
       res.status(401).json({ error: "Invalid username or password" });
     }
-  } catch (err) {
+  } catch (_err) {
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -98,7 +98,7 @@ app.delete('/api/system-logs', authenticate, authorizeAdmin, async (req, res) =>
   try {
     await Log.deleteMany({});
     res.json({ message: "All logs cleared by Admin" });
-  } catch (err) {
+  } catch (_err) {
     res.status(500).json({ error: "Failed to clear logs" });
   }
 });

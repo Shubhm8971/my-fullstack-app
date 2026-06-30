@@ -1,45 +1,47 @@
 import { useState, createContext, useContext, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from './useAuth.jsx';
 
 const SystemContext = createContext();
-const API_BASE = ''; 
 
 export default function App() {
-  const [token] = useState(localStorage.getItem('token'));
+  const { token, logout, authFetch } = useAuth();
   const [theme, setTheme] = useState('DARK');
   const [serverStatus, setServerStatus] = useState({ status: 'LOADING', message: '...' });
 
   const checkServer = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/system-status`, { cache: 'no-store' });
+      const response = await authFetch('/api/system-status', { cache: 'no-store' });
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
       const data = await response.json();
       setServerStatus(data);
-    } catch (err) {
-      setServerStatus({ status: 'OFFLINE', message: err.message });
+    } catch (_err) {
+      setServerStatus({ status: 'OFFLINE', message: _err.message });
     }
   };
 
   useEffect(() => {
-    checkServer();
-    const interval = setInterval(checkServer, 10000);
-    return () => clearInterval(interval);
-  }, []);
+    if (token) {
+      checkServer();
+      const interval = setInterval(checkServer, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [token]);
 
   return (
-    <SystemContext.Provider value={{ theme, setTheme, serverStatus, checkServer, token }}>
+    <SystemContext.Provider value={{ theme, setTheme, serverStatus, checkServer, authFetch, logout }}>
       <SystemLayout />
     </SystemContext.Provider>
   );
 }
 
 function SystemLayout() {
-  const { theme } = useContext(SystemContext);
+  const { theme, logout } = useContext(SystemContext);
   return (
     <div style={{ backgroundColor: theme === 'DARK' ? '#030712' : '#f3f4f6', color: theme === 'DARK' ? '#ffffff' : '#111827', minHeight: '100vh', padding: '20px' }}>
       <Navbar />
       <div style={{ textAlign: 'right', marginTop: '10px' }}>
-        <button onClick={() => { localStorage.removeItem('token'); window.location.reload(); }}>LOGOUT</button>
+        <button onClick={logout}>LOGOUT</button>
       </div>
       <Dashboard />
     </div>
@@ -61,7 +63,7 @@ function Navbar() {
 }
 
 function Dashboard() {
-  const { token } = useContext(SystemContext);
+  const { authFetch } = useContext(SystemContext);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -70,16 +72,14 @@ function Dashboard() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      let url = `${API_BASE}/api/system-logs?`;
+      let url = '/api/system-logs?';
       if (startDate) url += `startDate=${startDate}&`;
       if (endDate) url += `endDate=${endDate}`;
 
-      const response = await fetch(url, { 
-        headers: { 'Authorization': `Bearer ${token}` } 
-      });
+      const response = await authFetch(url);
       const data = await response.json();
       setLogs(data);
-    } catch (err) { console.error("Failed to load logs"); } finally { setLoading(false); }
+    } catch (_err) { console.error("Failed to load logs"); } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchLogs(); }, []);
@@ -107,23 +107,20 @@ function Dashboard() {
   const clearAllLogs = async () => {
     if (!confirm("WARNING: This will delete ALL system logs. Are you sure?")) return;
     try {
-      const response = await fetch(`${API_BASE}/api/system-logs`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await authFetch('/api/system-logs', { method: 'DELETE' });
       if (response.ok) {
         alert("Logs cleared successfully");
         fetchLogs();
       } else {
         alert("Access Denied: Admins only");
       }
-    } catch (err) { console.error("Failed to clear logs"); }
+    } catch (_err) { console.error("Failed to clear logs"); }
   };
 
   const sendSystemPing = async () => {
-    await fetch(`${API_BASE}/api/system-logs`, {
+    await authFetch('/api/system-logs', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ timestamp: new Date().toISOString(), event: "Manual Health Check" })
     });
     fetchLogs();
