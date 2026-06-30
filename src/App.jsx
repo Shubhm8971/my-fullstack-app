@@ -4,10 +4,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 const SystemContext = createContext();
 const API_BASE = ''; 
 
-export default function App() {
-  // Use a lazy initializer function to read from localStorage only once
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const [isInitializing, setIsInitializing] = useState(true);
+export default function App({ initialToken }) {
+  const [token, setToken] = useState(initialToken);
   const [theme, setTheme] = useState('DARK');
   const [serverStatus, setServerStatus] = useState({ status: 'LOADING', message: '...' });
 
@@ -23,16 +21,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    // Once the component mounts, we are finished with our initial check
-    setIsInitializing(false);
-    
     checkServer();
     const interval = setInterval(checkServer, 10000);
     return () => clearInterval(interval);
   }, []);
-
-  // Show a loading screen/placeholder to prevent the "AuthView" flash
-  if (isInitializing) return <div style={{ background: '#030712', height: '100vh' }}></div>;
 
   if (!token) return <AuthView onLogin={(t) => { localStorage.setItem('token', t); setToken(t); }} />;
 
