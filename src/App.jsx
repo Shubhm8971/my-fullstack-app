@@ -4,8 +4,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 const SystemContext = createContext();
 const API_BASE = ''; 
 
-export default function App({ initialToken }) {
-  const [token, setToken] = useState(initialToken);
+export default function App() {
+  const [token] = useState(localStorage.getItem('token'));
   const [theme, setTheme] = useState('DARK');
   const [serverStatus, setServerStatus] = useState({ status: 'LOADING', message: '...' });
 
@@ -26,66 +26,20 @@ export default function App({ initialToken }) {
     return () => clearInterval(interval);
   }, []);
 
-  if (!token) return <AuthView onLogin={(t) => { localStorage.setItem('token', t); setToken(t); }} />;
-
   return (
-    <SystemContext.Provider value={{ theme, setTheme, serverStatus, checkServer, token, setToken }}>
+    <SystemContext.Provider value={{ theme, setTheme, serverStatus, checkServer, token }}>
       <SystemLayout />
     </SystemContext.Provider>
   );
 }
 
-function AuthView({ onLogin }) {
-  const [isRegister, setIsRegister] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    
-    if (isRegister) {
-      alert(data.message || data.error);
-      if (!data.error) setIsRegister(false);
-    } else if (data.token) {
-      try {
-        const payload = JSON.parse(atob(data.token.split('.')[1]));
-        console.log("Logged in user role:", payload.role);
-      } catch (err) { console.error("Could not decode token"); }
-      onLogin(data.token);
-    } else {
-      alert(data.error || 'Login failed');
-    }
-  };
-
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
-      <h2>{isRegister ? 'REGISTER SYSTEM' : 'SYSTEM LOGIN'}</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '300px' }}>
-        <input name="username" id="username" placeholder="Username" onChange={e => setUsername(e.target.value)} style={{ padding: '8px' }} />
-        <input type="password" name="password" id="password" placeholder="Password" onChange={e => setPassword(e.target.value)} style={{ padding: '8px' }} />
-        <button type="submit">{isRegister ? 'REGISTER' : 'LOGIN'}</button>
-        <button type="button" onClick={() => setIsRegister(!isRegister)} style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer' }}>
-          {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
-        </button>
-      </form>
-    </div>
-  );
-}
-
 function SystemLayout() {
-  const { theme, setToken } = useContext(SystemContext);
+  const { theme } = useContext(SystemContext);
   return (
     <div style={{ backgroundColor: theme === 'DARK' ? '#030712' : '#f3f4f6', color: theme === 'DARK' ? '#ffffff' : '#111827', minHeight: '100vh', padding: '20px' }}>
       <Navbar />
       <div style={{ textAlign: 'right', marginTop: '10px' }}>
-        <button onClick={() => { localStorage.removeItem('token'); setToken(null); window.location.reload(); }}>LOGOUT</button>
+        <button onClick={() => { localStorage.removeItem('token'); window.location.reload(); }}>LOGOUT</button>
       </div>
       <Dashboard />
     </div>
