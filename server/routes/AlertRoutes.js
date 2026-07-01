@@ -5,22 +5,24 @@ const router = express.Router();
 
 // Get all alerts
 router.get('/', async (req, res) => {
-  const alerts = await Alert.find();
-  res.json(alerts);
+  try {
+    const alerts = await Alert.find();
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).send('Server error');
+  }
 });
 
-// Create a new alert
+// Create an alert
 router.post('/', async (req, res) => {
-  const { metric, threshold, condition } = req.body;
-  const newAlert = new Alert({ metric, threshold, condition });
-  await newAlert.save();
-  res.status(201).json(newAlert);
-});
-
-// Delete an alert
-router.delete('/:id', async (req, res) => {
-  await Alert.findByIdAndDelete(req.params.id);
-  res.status(204).send();
+  const { message } = req.body;
+  try {
+    const alert = new Alert({ message });
+    await alert.save();
+    res.status(201).json(alert);
+  } catch (error) {
+    res.status(400).send('Error creating alert');
+  }
 });
 
 export default router;

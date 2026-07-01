@@ -1,25 +1,10 @@
 import mongoose from 'mongoose';
 
-const alertSchema = new mongoose.Schema({
-  metric: {
-    type: String,
-    required: true,
-  },
-  threshold: {
-    type: Number,
-    required: true,
-  },
-  condition: {
-    type: String,
-    enum: ['above', 'below'],
-    required: true,
-  },
-  triggered: {
-    type: Boolean,
-    default: false,
-  },
+const AlertSchema = new mongoose.Schema({
+  message: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now },
 });
 
-const Alert = mongoose.model('Alert', alertSchema);
+const Alert = mongoose.model('Alert', AlertSchema);
 
 export default Alert;
