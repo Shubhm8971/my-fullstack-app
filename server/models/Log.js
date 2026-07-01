@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const LogSchema = new mongoose.Schema({
+  level: { type: String, required: true },
+  message: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
-  event: { type: String, required: true },
-  origin: { type: String, required: true },
 });
 
 const Log = mongoose.model('Log', LogSchema);
