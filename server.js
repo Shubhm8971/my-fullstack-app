@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 import routes from './server/routes/index.js';
 import { subscribe } from './server/sse.js';
 import { startAlerting } from './server/alerting.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
