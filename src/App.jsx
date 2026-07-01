@@ -1,36 +1,34 @@
-import { useState, createContext, useEffect } from 'react';
-import { useAuth } from './useAuth';
-import SystemLayout from './components/SystemLayout';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
 
-export const SystemContext = createContext();
-
-export default function App() {
-  const { token, logout, authFetch } = useAuth();
-  const [theme, setTheme] = useState('DARK');
-  const [serverStatus, setServerStatus] = useState({ status: 'LOADING', message: '...' });
-
-  const checkServer = async () => {
-    try {
-      const response = await authFetch('/api/system-status', { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Server returned ${response.status}`);
-      const data = await response.json();
-      setServerStatus(data);
-    } catch (_err) {
-      setServerStatus({ status: 'OFFLINE', message: _err.message });
-    }
-  };
-
-  useEffect(() => {
-    if (token) {
-      checkServer();
-      const interval = setInterval(checkServer, 10000);
-      return () => clearInterval(interval);
-    }
-  }, [token]);
-
+const App = () => {
   return (
-    <SystemContext.Provider value={{ theme, setTheme, serverStatus, checkServer, authFetch, logout }}>
-      <SystemLayout />
-    </SystemContext.Provider>
+    <Router>
+      <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f0f2f5' }}>
+        <div style={{
+          width: '250px',
+          backgroundColor: '#001529',
+          color: 'white',
+          padding: '20px'
+        }}>
+          <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Monitoring</h1>
+          <nav>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              <li style={{ marginBottom: '15px' }}>
+                <Link to="/" style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>Dashboard</Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <main style={{ flex: 1, padding: '20px' }}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
-}
+};
+
+export default App;
