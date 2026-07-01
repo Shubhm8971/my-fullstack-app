@@ -3,9 +3,9 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import routes from './routes/index.js';
-import { subscribe } from './sse.js';
-import { startAlerting } from './alerting.js';
+import routes from './server/routes/index.js';
+import { subscribe } from './server/sse.js';
+import { startAlerting } from './server/alerting.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
