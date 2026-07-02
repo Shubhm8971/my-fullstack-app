@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './server/db.js';
 import authRoutes from './server/routes/auth.js';
+import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,7 @@ const app = express();
 connectDB();
 
 // Init Middleware
+app.use(cors());
 app.use(express.json({ extended: false }));
 
 // Define Routes
