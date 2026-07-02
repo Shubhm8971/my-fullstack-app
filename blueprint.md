@@ -1,46 +1,37 @@
+# SYSTEM_CORE_V3.0 Blueprint
 
-# SYSTEM_CORE_V3.0 - Project Blueprint
+## 🚀 Overview
+A high-performance, real-time system monitoring dashboard built to provide live insights into server health, event logging, and system activity.
 
-## 1. Project Overview
+## ✨ Implemented Features
 
-SYSTEM_CORE_V3.0 is a secure, React-based monitoring dashboard designed for system administrators. It provides real-time insights into system health, log analysis, and administrative controls through a clean, dark-themed interface.
+### V1: Initial Landing Page
+*   **UI/UX:** A modern and visually appealing landing page with a hero section, navigation bar, and footer.
+*   **Styling:** A clean and modern design with a custom color palette and typography.
+*   **Deployment:** The application is successfully deployed and running on Render.
 
----
+## 🚧 Current Plan: V2 - User Authentication
 
-## 2. Core Features (As of Day 35)
+Our next goal is to implement a secure user authentication system. This will involve the following steps:
 
-*   **Authentication:** Secure user Login/Registration using local JWT authentication. The app features a split-entry point (`main.jsx`) to prevent rendering flickers during auth state verification.
-*   **State Management:** Utilizes React's Context API (`SystemContext`) to provide shared state (theme, auth status, etc.) throughout the application.
-*   **System Health Monitoring:** A `Navbar` component displays the live status of the server (`ONLINE`/`OFFLINE`), which is polled every 10 seconds.
-*   **Data Visualization:** A `Dashboard` component renders a bar chart of system log events using the Recharts library, providing a quick visual summary of system activity.
-*   **Log Management:**
-    *   **Filtering:** Users can filter system logs by a specific date range.
-    *   **Data Portability:** Functionality to export the currently filtered logs to a CSV file.
-    *   **Administration:** A feature to purge all system logs from the database (restricted to admin-level users).
-*   **Theming:** Supports toggling between `DARK` and `LIGHT` themes.
-*   **Code Structure:** Refactored `App.jsx` into smaller, reusable components (`SystemLayout`, `Navbar`, `Dashboard`) located in the `src/components` directory for improved maintainability.
+1.  **Backend API:**
+    *   Create API endpoints for user registration (`/api/auth/register`) and login (`/api/auth/login`).
+    *   Use MongoDB to store user credentials securely.
+    *   Hash passwords using `bcryptjs` before saving them to the database.
+    *   Generate a JSON Web Token (JWT) upon successful login to authenticate subsequent requests.
 
----
+2.  **Frontend Pages:**
+    *   Create a `LoginPage.jsx` component with a form for users to enter their credentials.
+    *   Create a `RegisterPage.jsx` component with a form for new users to sign up.
 
-## 3. Core Features (As of Day 36) - Real-Time System Alerts
+3.  **Routing:**
+    *   Use `react-router-dom` to add routes for the `/login` and `/register` pages.
+    *   Update the navigation bar to include links to the login and registration pages.
 
-This feature transforms the dashboard from a passive monitoring tool into an active one, automatically notifying administrators of critical events.
+4.  **State Management:**
+    *   Use React's Context API to manage the user's authentication state throughout the application.
 
-*   **Backend (Node.js/Express):**
-    *   **Alerts API:** New API endpoints (`/api/alerts`) for creating, retrieving, and deleting alert rules.
-    *   **Server-Sent Events (SSE):** An SSE endpoint (`/api/events`) pushes real-time notifications to the client.
-    *   **Alerting Engine:** Server-side logic (`server/alerting.js`) periodically checks system metrics (like log count) against defined alert rules and triggers events.
-    *   **Modular Routing:** Server routes are now modular, managed through `server/routes/index.js` for better organization.
+5.  **Protected Routes:**
+    *   Implement a mechanism to protect routes that should only be accessible to logged-in users.
 
-*   **Frontend (React):**
-    *   **Alerts Manager:** A new `AlertsManager.jsx` component provides a UI for users to define and manage alert rules (e.g., "trigger if log count is above 100").
-    *   **Real-Time Notifications:** A `Notifications.jsx` component displays incoming alerts as non-intrusive toast messages, ensuring administrators are immediately aware of important system events.
-
----
-
-## 4. Plan for Future Development
-
-*   **Expand Alerting Metrics:** Add more metrics for alerting, such as CPU usage, memory usage, and API response times.
-*   **User-Specific Dashboards:** Allow users to customize their dashboard layout and the data they see.
-*   **Advanced User Roles:** Implement more granular user roles and permissions.
-*   **UI/UX Polish:** Further refine the user interface for a more polished and intuitive experience.
+This plan will give us a solid foundation for building the rest of the application's features. Let me know if you have any feedback on this plan, or if you're ready for me to start the implementation.

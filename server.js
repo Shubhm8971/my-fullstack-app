@@ -1,11 +1,22 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import connectDB from './server/db.js';
+import authRoutes from './server/routes/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Connect to database
+connectDB();
+
+// Init Middleware
+app.use(express.json({ extended: false }));
+
+// Define Routes
+app.use('/api/auth', authRoutes);
 
 // Serve static files from the 'dist' directory
 app.use(express.static(path.join(__dirname, 'dist')));
