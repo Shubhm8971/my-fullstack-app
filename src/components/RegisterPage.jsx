@@ -19,10 +19,10 @@ const RegisterPage = () => {
       console.log('Passwords do not match');
     } else {
       try {
-        const res = await axios.post('/api/auth/register', { email, password });
+        const res = await axios.post('http://localhost:3000/api/auth/register', { email, password });
         console.log(res.data);
       } catch (err) {
-        console.error(err.response.data);
+        console.error(err);
       }
     }
   };
