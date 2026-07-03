@@ -52,8 +52,6 @@
 
 body {
   margin: 0;
-  /* Ensure the body matches the app background */
-  background-color: #030712;
 }
 
 #root {
@@ -66,8 +64,6 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  /* THIS PREVENTS THE FLASH */
-  background-color: #030712; 
 }
 
 h1,
