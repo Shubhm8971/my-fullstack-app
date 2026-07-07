@@ -16,3 +16,13 @@
 .button:hover {
   background-color: #4fa3d1;
 }
+
+.button.secondary {
+  background-color: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+.button.secondary:hover {
+  background-color: var(--accent-bg);
+}

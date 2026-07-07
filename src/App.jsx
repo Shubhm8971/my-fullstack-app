@@ -14,7 +14,10 @@ function App() {
       <main>
         <h2>Welcome to Stellar App!</h2>
         <p>This is the starting point for your new application.</p>
-        <Button onClick={handleClick}>Click me!</Button>
+        <div className="button-container">
+          <Button onClick={handleClick}>Primary</Button>
+          <Button onClick={handleClick} className="secondary">Secondary</Button>
+        </div>
       </main>
     </>
   )
