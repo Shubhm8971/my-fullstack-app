@@ -5,7 +5,8 @@
   padding: 10px 20px;
   text-align: center;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-size: 16px;
   margin: 4px 2px;
   cursor: pointer;
@@ -25,4 +26,11 @@
 
 .button.secondary:hover {
   background-color: var(--accent-bg);
+}
+
+.button-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  fill: currentColor;
 }

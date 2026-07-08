@@ -15,7 +15,7 @@ function App() {
         <h2>Welcome to Stellar App!</h2>
         <p>This is the starting point for your new application.</p>
         <div className="button-container">
-          <Button onClick={handleClick}>Primary</Button>
+          <Button onClick={handleClick} icon="github-icon">Primary</Button>
           <Button onClick={handleClick} className="secondary">Secondary</Button>
         </div>
       </main>
