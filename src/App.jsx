@@ -2,6 +2,7 @@ import reactLogo from './assets/react.svg'
 import './App.css'
 import Header from './components/Header'
 import Button from './components/Button'
+import Footer from './components/Footer'
 
 function App() {
   const handleClick = () => {
@@ -9,7 +10,7 @@ function App() {
   }
 
   return (
-    <>
+    <div className="app-container">
       <Header logo={reactLogo} />
       <main>
         <h2>Welcome to Stellar App!</h2>
@@ -19,7 +20,8 @@ function App() {
           <Button onClick={handleClick} className="secondary">Secondary</Button>
         </div>
       </main>
-    </>
+      <Footer />
+    </div>
   )
 }
 
