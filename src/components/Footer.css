@@ -7,3 +7,17 @@
   bottom: 0;
   width: 100%;
 }
+
+.social-media {
+  margin-top: 1rem;
+}
+
+.social-media a {
+  color: white;
+  margin: 0 1rem;
+  text-decoration: none;
+}
+
+.social-media a:hover {
+  text-decoration: underline;
+}
