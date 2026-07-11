@@ -1,8 +1,8 @@
 .footer {
-  background-color: #282c34;
+  background-color: var(--code-bg);
   padding: 1rem;
   text-align: center;
-  color: white;
+  color: var(--text);
   position: absolute;
   bottom: 0;
   width: 100%;
@@ -13,11 +13,12 @@
 }
 
 .social-media a {
-  color: white;
+  color: var(--text);
   margin: 0 1rem;
   text-decoration: none;
 }
 
 .social-media a:hover {
+  color: var(--accent);
   text-decoration: underline;
 }
