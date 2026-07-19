@@ -4,11 +4,20 @@
   color: var(--text-h);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   border-bottom: 1px solid var(--border);
 }
 
 .header-logo {
   height: 40px;
   margin-right: 20px;
+}
+
+.challenge-counter {
+  background-color: var(--accent);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
 }
